@@ -131,7 +131,7 @@ function favoriteVerse(verseId) {
                     'favorite': true
                 }
             };
-            fetch(`https://n8n.deviatedsystems.com/webhook-test/15e6c70d-d5f1-4ef3-8f6e-500f10f013c3`, options)
+            fetch(`https://n8n.deviatedsystems.com/webhook/15e6c70d-d5f1-4ef3-8f6e-500f10f013c3`, options)
                 .then(response => response.json())
                 .then(response => {
                     console.log(response);
@@ -148,7 +148,7 @@ function favoriteVerse(verseId) {
                     'favorite': false
                 }
             };
-            fetch(`https://n8n.deviatedsystems.com/webhook-test/15e6c70d-d5f1-4ef3-8f6e-500f10f013c3`, options)
+            fetch(`https://n8n.deviatedsystems.com/webhook/15e6c70d-d5f1-4ef3-8f6e-500f10f013c3`, options)
                 .then(response => response.json())
                 .then(response => {
                     console.log(response);
