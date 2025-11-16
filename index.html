@@ -8,11 +8,89 @@
 </head>
 <body>
 <button onclick="submitverse()">Submit Verse</button>
-<input type="text">
-    
+<input type="text" id="verse">
+    <button onclick="getAllVerses()">Load All Verse</button>
     <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Explicabo autem iusto reprehenderit, numquam repudiandae, expedita amet vero facere ab officia similique possimus sed? Voluptate perspiciatis odit quo, eligendi explicabo iusto.</p>
     
+<section>
+    <h2>Verse Section</h2>
+    <div id="verses" style="padding:10px; margin-top:10px;">
+        <!-- Verses will be displayed here -->
+</section>
 
+
+<script lang="js">
+// get Value of Text Input
+function submitverse() {
+    var Uverse = document.getElementById("verse").value;
+    console.log(Uverse);
+
+// perform fetch to server to submit verse request
+ const options = {method: 'POST', headers: {'verse': Uverse}};
+
+fetch('https://n8n.deviatedsystems.com/webhook/15e6c70d-d5f1-4ef3-8f6e-500f10f013c2', options)
+  .then(response => response.json())
+  .then(response => console.log(response))
+  .catch(err => console.error(err));
+}
+// handle getting all verses
+let versesDiv = document.getElementById("verses");
+
+function getAllVerses() {
+ const options = {method: 'GET'};
+ return fetch('https://n8n.deviatedsystems.com/webhook/15e6c70d-d5f1-4ef3-8f6e-500f10f013c2', options)
+    .then(response => response.json())
+    .then(response => console.log(response))
+   
+    .catch(err => console.error(err));
+}
+// make getting all verses on page load
+window.onload = getAllVerses;
+
+let sampleResponse =
+[
+  {
+    "id": "rec8PoopYdWLVqZAV",
+    "createdTime": "2025-11-16T19:23:30.000Z",
+    "Name": "John 3:16",
+    "VerseContent": "For God so loved the world, that he gave his only begotten Son, that whosoever believeth on him should not perish, but have eternal life.",
+    "book_id": "JHN",
+    "book_name": "John",
+    "chapter": 3,
+    "verse": 16,
+    "Ai_Explain": "Okay, imagine God, who created everything and everyone, loves *everyone* in the whole wide world, including YOU, so incredibly much!\n\nBecause His love is so big, He sent His only special Son, Jesus, as the most amazing gift.\n\nIf you trust in Jesus and believe He is who He says He is, you won't be lost or sad forever. Instead, you get to live a wonderful, happy life with God forever and ever!"
+  },
+  {
+    "id": "recCydU42tDC1GHwa",
+    "createdTime": "2025-11-16T19:46:05.000Z",
+    "Name": "John 3:13",
+    "VerseContent": "And no one hath ascended into heaven, but he that descended out of heaven, [even] the Son of man, who is in heaven.",
+    "book_id": "JHN",
+    "book_name": "John",
+    "chapter": 3,
+    "verse": 13,
+    "Ai_Explain": "Imagine heaven is like a super-secret place in the sky!\n\nThis verse is saying:\n\n1.  **No one can just fly up to heaven** and visit on their own.\n2.  **Except for Jesus!** He's the only one who actually *came down* from heaven to Earth.\n3.  The Bible calls him \"the Son of Man\" here, which is a special name for Jesus.\n4.  And get this: even when he was on Earth, he was *still* connected to heaven, like it was his home.\n\nSo, it means **Jesus is the only one who truly knows what heaven is like because he's from there!** He's our special connection to heaven."
+  }
+]
+
+function displayVerses(verses) {
+    versesDiv.innerHTML = ""; // Clear existing content
+    verses.forEach(verse => {
+        let verseElement = document.createElement("div");
+        // add border to verse element
+        verseElement.style.border = "1px solid black";
+        verseElement.style.borderRadius = "5px";
+        verseElement.style.padding = "10px";
+        verseElement.style.marginBottom = "10px";
+        verseElement.innerHTML = `<h3>${verse.Name}</h3><p>${verse.VerseContent}</p><hr><p><em>${verse.Ai_Explain}</em></p>`;
+        versesDiv.appendChild(verseElement);
+    });
+}
+
+// run displayVerses when getAllVerses resolves
+displayVerses(sampleResponse);
+
+</script>
 
     
 </body>
