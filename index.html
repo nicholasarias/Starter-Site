@@ -42,34 +42,6 @@
         }
         // handle getting all verses
         let versesDiv = document.getElementById("verses");
-
-
-        let sampleResponse = [{
-                "id": "rec8PoopYdWLVqZAV",
-                "createdTime": "2025-11-16T19:23:30.000Z",
-                "Name": "John 3:16",
-                "VerseContent": "For God so loved the world, that he gave his only begotten Son, that whosoever believeth on him should not perish, but have eternal life.",
-                "book_id": "JHN",
-                "book_name": "John",
-                "chapter": 3,
-                "verse": 16,
-                "Ai_Explain": "Okay, imagine God, who created everything and everyone, loves *everyone* in the whole wide world, including YOU, so incredibly much!\n\nBecause His love is so big, He sent His only special Son, Jesus, as the most amazing gift.\n\nIf you trust in Jesus and believe He is who He says He is, you won't be lost or sad forever. Instead, you get to live a wonderful, happy life with God forever and ever!"
-            },
-            {
-                "id": "recCydU42tDC1GHwa",
-                "createdTime": "2025-11-16T19:46:05.000Z",
-                "Name": "John 3:13",
-                "VerseContent": "And no one hath ascended into heaven, but he that descended out of heaven, [even] the Son of man, who is in heaven.",
-                "book_id": "JHN",
-                "book_name": "John",
-                "chapter": 3,
-                "verse": 13,
-                "Ai_Explain": "Imagine heaven is like a super-secret place in the sky!\n\nThis verse is saying:\n\n1.  **No one can just fly up to heaven** and visit on their own.\n2.  **Except for Jesus!** He's the only one who actually *came down* from heaven to Earth.\n3.  The Bible calls him \"the Son of Man\" here, which is a special name for Jesus.\n4.  And get this: even when he was on Earth, he was *still* connected to heaven, like it was his home.\n\nSo, it means **Jesus is the only one who truly knows what heaven is like because he's from there!** He's our special connection to heaven."
-            }
-        ]
-
-
-
         function displayVerses() {
             const options = {
                 method: 'GET'
@@ -88,13 +60,47 @@
                 verseElement.style.borderRadius = "5px";
                 verseElement.style.padding = "10px";
                 verseElement.style.marginBottom = "10px";
-                verseElement.innerHTML = `<h3>${verse.Name}</h3><p>${verse.VerseContent}</p><hr><p><em>${verse.Ai_Explain}</em></p>`;
+
+
+
+              
+                
+                if (verse.Favorite) {
+                     verseElement.innerHTML = `<h3>${verse.Name}⭐</h3><p>${verse.VerseContent}</p><hr><p><em>${verse.Ai_Explain}</em></p>`;
+                }
+                else {
+                    verseElement.innerHTML = `<h3>${verse.Name }</h3><p>${verse.VerseContent}</p><hr><p><em>${verse.Ai_Explain}</em></p>`;
+                }
+              
+                
                 // add button to delete verse
                 let deleteButton = document.createElement("button");
                 deleteButton.innerHTML = "Delete";
                 deleteButton.onclick = function () {
                     deleteVerse(verse.id);
                 };
+                // add button to favorite verse
+                let favoriteButton = document.createElement("button");
+                favoriteButton.innerHTML = "Favorite";
+                favoriteButton.onclick = function () {
+                    favoriteVerse(verse.id);
+                };
+                // add button to remove favorite verse
+                let removeFavoriteButton = document.createElement("button");
+                removeFavoriteButton.innerHTML = "Remove Favorite";
+                removeFavoriteButton.onclick = function () {
+                    deleteFavoriteVerse(verse.id);
+                };
+            
+
+
+                // if is favorite, disable favorite button
+                if (verse.Favorite) {
+verseElement.appendChild(removeFavoriteButton);
+                } else {
+                    verseElement.appendChild(favoriteButton);
+                }
+
                 verseElement.appendChild(deleteButton);
 
                 versesDiv.appendChild(verseElement);
@@ -116,6 +122,42 @@
                 })
                 .catch(err => console.error(err));
         }
+
+function favoriteVerse(verseId) {
+            const options = {
+                method: 'POST',
+                headers: {
+                    'verseId': verseId,
+                    'favorite': true
+                }
+            };
+            fetch(`https://n8n.deviatedsystems.com/webhook-test/15e6c70d-d5f1-4ef3-8f6e-500f10f013c3`, options)
+                .then(response => response.json())
+                .then(response => {
+                    console.log(response);
+                    // refresh page
+                    window.location.reload();
+                })
+                .catch(err => console.error(err));
+        }
+        function deleteFavoriteVerse(verseId) {
+            const options = {
+                method: 'POST',
+                headers: {
+                    'verseId': verseId,
+                    'favorite': false
+                }
+            };
+            fetch(`https://n8n.deviatedsystems.com/webhook-test/15e6c70d-d5f1-4ef3-8f6e-500f10f013c3`, options)
+                .then(response => response.json())
+                .then(response => {
+                    console.log(response);
+                    // refresh page
+                    window.location.reload();
+                })
+                .catch(err => console.error(err));
+        }
+
         // run displayVerses when getAllVerses resolves
         displayVerses();
     </script>
