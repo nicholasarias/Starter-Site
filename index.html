@@ -1,168 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nicks Site</title>
-
+    <title>Nicks Bible Site</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <button onclick="submitverse()">Submit Verse</button>
-    <input type="text" id="verse">
-    <button onclick="getAllVerses()">Load All Verse</button>
-    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Explicabo autem iusto reprehenderit, numquam repudiandae, expedita amet vero facere ab officia similique possimus sed? Voluptate perspiciatis odit quo, eligendi explicabo iusto.</p>
 
-    <section>
-        <h2>Verse Section</h2>
-        <div id="verses" style="padding:10px; margin-top:10px;">
-            <!-- Verses will be displayed here -->
+    <!-- Header -->
+    <header>
+        <h1>The Best Bible Verse Lookup This Side of The Mississippi</h1>
+        <hr>
+        <h2>Bible Verse Lookup</h2>
+    </header>
+
+    <!-- Bible Lookup Section -->
+    <section class="lookupSection">
+        <label for="lookupInput">Lookup a Verse (e.g., John 3:16):</label>
+        <div class="controls">
+            <input type="text" id="lookupInput" placeholder="John 3:16">
+            <button id="lookupBtn">Get Verse</button>
+        </div>
+        <div id="lookupResult" class="card"></div>
     </section>
 
+    <hr>
 
-    <script lang="js">
-        // get Value of Text Input
-        function submitverse() {
-            var Uverse = document.getElementById("verse").value;
-            console.log(Uverse);
+    <!-- CRUD Section -->
+    <section>
+        <h2>Submit Verse to Database:</h2>
+        <input type="text" id="verseInput" placeholder="Enter Verse (e.g., John 3:16)">
+        <button id="submitVerseBtn">Submit Verse</button>
+        <button id="loadVersesBtn">Load All Saved Verses</button>
 
-            // perform fetch to server to submit verse request
-            const options = {
-                method: 'POST',
-                headers: {
-                    'verse': Uverse
-                }
-            };
+        <div id="verses" style="margin-top: 15px;"></div>
+    </section>
 
-            fetch('https://n8n.deviatedsystems.com/webhook/15e6c70d-d5f1-4ef3-8f6e-500f10f013c2', options)
-                .then(response => response.json())
-                .then(response => console.log(response))
-                .catch(err => console.error(err));
-        }
-        // handle getting all verses
-        let versesDiv = document.getElementById("verses");
-        function displayVerses() {
-            const options = {
-                method: 'GET'
-            };
-            let verses = fetch('https://n8n.deviatedsystems.com/webhook/15e6c70d-d5f1-4ef3-8f6e-500f10f013c2', options).then(response => response.json()).then(data => {
-                renderVerses(data);
-            }).catch(err => console.error(err));
-        }
+    <!-- Fake login sliding panel -->
+    <div id="loginTab">Login?</div>
 
-        function renderVerses(verses) {
-            versesDiv.innerHTML = ""; // Clear existing content
-            verses.forEach(verse => {
-                let verseElement = document.createElement("div");
-                // add border to verse element
-                verseElement.style.border = "1px solid black";
-                verseElement.style.borderRadius = "5px";
-                verseElement.style.padding = "10px";
-                verseElement.style.marginBottom = "10px";
+    <div id="loginPanel">
+        <div id="fakeLogin">
+            <h3>Login</h3>
+            <p>Bro, this isn't a secure website. Why would you give me your info?</p>
+            <input id="fakeUser" placeholder="Username">
+            <input id="fakePass" type="password" placeholder="Password">
+            <button id="fakeLoginBtn">Login</button>
+            <button id="closeLogin">Close</button>
+        </div>
+    </div>
 
-
-
-              
-                
-                if (verse.Favorite) {
-                     verseElement.innerHTML = `<h3>${verse.Name}⭐</h3><p>${verse.VerseContent}</p><hr><p><em>${verse.Ai_Explain}</em></p>`;
-                }
-                else {
-                    verseElement.innerHTML = `<h3>${verse.Name }</h3><p>${verse.VerseContent}</p><hr><p><em>${verse.Ai_Explain}</em></p>`;
-                }
-              
-                
-                // add button to delete verse
-                let deleteButton = document.createElement("button");
-                deleteButton.innerHTML = "Delete";
-                deleteButton.onclick = function () {
-                    deleteVerse(verse.id);
-                };
-                // add button to favorite verse
-                let favoriteButton = document.createElement("button");
-                favoriteButton.innerHTML = "Favorite";
-                favoriteButton.onclick = function () {
-                    favoriteVerse(verse.id);
-                };
-                // add button to remove favorite verse
-                let removeFavoriteButton = document.createElement("button");
-                removeFavoriteButton.innerHTML = "Remove Favorite";
-                removeFavoriteButton.onclick = function () {
-                    deleteFavoriteVerse(verse.id);
-                };
-            
-
-
-                // if is favorite, disable favorite button
-                if (verse.Favorite) {
-verseElement.appendChild(removeFavoriteButton);
-                } else {
-                    verseElement.appendChild(favoriteButton);
-                }
-
-                verseElement.appendChild(deleteButton);
-
-                versesDiv.appendChild(verseElement);
-            });
-        }
-        function deleteVerse(verseId) {
-            const options = {
-                method: 'DELETE',
-                headers: {
-                    'verseId': verseId
-                }
-            };
-            fetch(`https://n8n.deviatedsystems.com/webhook/15e6c70d-d5f1-4ef3-8f6e-500f10f013c2`, options)
-                .then(response => response.json())
-                .then(response => {
-                    console.log(response);
-                    // refresh page
-                    window.location.reload();
-                })
-                .catch(err => console.error(err));
-        }
-
-function favoriteVerse(verseId) {
-            const options = {
-                method: 'POST',
-                headers: {
-                    'verseId': verseId,
-                    'favorite': true
-                }
-            };
-            fetch(`https://n8n.deviatedsystems.com/webhook/15e6c70d-d5f1-4ef3-8f6e-500f10f013c3`, options)
-                .then(response => response.json())
-                .then(response => {
-                    console.log(response);
-                    // refresh page
-                    window.location.reload();
-                })
-                .catch(err => console.error(err));
-        }
-        function deleteFavoriteVerse(verseId) {
-            const options = {
-                method: 'POST',
-                headers: {
-                    'verseId': verseId,
-                    'favorite': false
-                }
-            };
-            fetch(`https://n8n.deviatedsystems.com/webhook/15e6c70d-d5f1-4ef3-8f6e-500f10f013c3`, options)
-                .then(response => response.json())
-                .then(response => {
-                    console.log(response);
-                    // refresh page
-                    window.location.reload();
-                })
-                .catch(err => console.error(err));
-        }
-
-        // run displayVerses when getAllVerses resolves
-        displayVerses();
-    </script>
-
-
+    <script src="script.js"></script>
 </body>
 
 </html>
