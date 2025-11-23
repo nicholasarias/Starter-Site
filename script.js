@@ -1,41 +1,37 @@
+const ID = 324854
+const Token = "orozz1NNnlOphkdtzEr2i5sCg3XzvMAa"
 
-        const ID = 324854
-        const Token = "orozz1NNnlOphkdtzEr2i5sCg3XzvMAa"
-        function getAllVerses(){
-            console.log("start")
-            console.log("db id "+ID)
-            console.log("auth token " +Token)
-            fetch("https://api.baserow.io/api/database/rows/table/747569/?user_field_names=true", {
-  method: "GET",
-  headers: {
-    "Authorization": "Token " + Token
-  }
-})
-.then(response => {
-  // Check if the request was successful (status code 200-299)
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-  // Parse the response body as JSON
-  return response.json();
-})
-.then(data => {
-  // Inside your getAllVerses().then(data => {...}) block:
-
-console.log(data.results)
-    // Check if 'results' exists and is an array (Standard Baserow structure)
-    if (data.results && Array.isArray(data.results)) {
-        displayVerses(data.results); // Pass the array of rows
-    } else {
-        console.error("API response structure is unexpected. Looking for data.results array.");
-    }
-})
-.catch(error => {
-  // Log any errors that occurred during the fetch operation
-  console.error("Fetch Error:", error);
-});
+// The function responsible for fetching all verses and updating the display
+function getAllVerses(){
+    console.log("start")
+    console.log("db id "+ID)
+    console.log("auth token " +Token)
+    fetch("https://api.baserow.io/api/database/rows/table/747569/?user_field_names=true", {
+        method: "GET",
+        headers: {
+            "Authorization": "Token " + Token
         }
-       function getverse() {
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log(data.results)
+        if (data.results && Array.isArray(data.results)) {
+            displayVerses(data.results); 
+        } else {
+            console.error("API response structure is unexpected. Looking for data.results array.");
+        }
+    })
+    .catch(error => {
+        console.error("Fetch Error:", error);
+    });
+}
+
+function getverse() {
     // 1. Get the verse search query from the input field
     var versesearch = document.getElementById("lookupInput").value;
     
@@ -45,65 +41,103 @@ console.log(data.results)
     // 2. Perform the fetch request
     fetch(`https://bible-api.com/${encodeURIComponent(versesearch)}?translation=asv`)
     .then(response => {
-        // Check if the request was successful (status code 200-299)
         if (!response.ok) {
-            // Throw an error if the response is not OK
             throw new Error(`HTTP error! Status: ${response.status} for search: ${versesearch}`);
         }
-        // Return the parsed JSON body (this returns a new promise)
         return response.json();
     })
     .then(data => {
-        // 3. Log the JSON data to the console if the fetch was successful
         console.log("Verse Data Received:", data);
         const rowData = {
-        // Map the API fields to your Baserow table fields
-        "Book": data.verses[0].book_name, 
-        "Chapter": data.verses[0].chapter,
-        "Verse": data.verses[0].verse,
-        "Text": data.text,
-        // Set 'Favorite' to true, as per your cURL example
-        "Favorite": true 
-    }
+            "Book": data.verses[0].book_name, 
+            "Chapter": data.verses[0].chapter,
+            "Verse": data.verses[0].verse,
+            "Text": data.text,
+            "Favorite": true 
+        }
         fetch("https://api.baserow.io/api/database/rows/table/747569/?user_field_names=true", {
-            method: "POST", // The cURL -X POST flag
+            method: "POST",
         headers: {
-            // The cURL -H "Authorization: ..." flag
             "Authorization": `Token ${Token}`, 
-            // The cURL -H "Content-Type: ..." flag
             "Content-Type": "application/json" 
         },
-    body: JSON.stringify(rowData)
+        body: JSON.stringify(rowData)
 
-    })
-.then(response => {
-        // Handle non-200 responses (e.g., 401 Unauthorized, 400 Bad Request)
-        if (!response.ok) {
-            // Read the error message from the response body for better debugging
-            return response.json().then(error => {
-                throw new Error(`HTTP error! Status: ${response.status}. Baserow Error: ${JSON.stringify(error)}`);
-            });
-        }
-        // Parse the successful response (the newly created row data)
-        return response.json();
-    })
-    .then(newRow => {
-        console.log("✅ Row created successfully:", newRow);
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(error => {
+                    throw new Error(`HTTP error! Status: ${response.status}. Baserow Error: ${JSON.stringify(error)}`);
+                });
+            }
+            return response.json();
+        })
+        .then(newRow => {
+            console.log("✅ Row created successfully:", newRow);
+            // After creating a new row, reload the list to show the new item
+            getAllVerses(); 
+        })
+        .catch(error => {
+            console.error("❌ Baserow Fetch Error:", error);
+        });
     })
     .catch(error => {
-        console.error("❌ Baserow Fetch Error:", error);
-    });
-
-        // Optional: You would typically update the DOM here, e.g.:
-        // document.getElementById("output").textContent = data.text;
-    })
-    .catch(error => {
-        // 4. Log any errors that occurred (network issues, API errors, etc.)
         console.error("Fetch Error:", error);
     });
 } 
+
 /**
- * Takes the 'results' array from the Baserow List Rows API and renders them.
+ * Executes the DELETE operation against the Baserow API for a specific row ID.
+ * @param {string} rowId - The unique ID of the row to delete.
+ */
+function deleteVerse(event) {
+    // 1. Prevent any default form action (if the button was inside a form)
+    event.preventDefault(); 
+    
+    // 2. Find the Row ID from the nearest parent verse-card
+    const deleteButton = event.target;
+    // .closest finds the nearest ancestor element matching the selector
+    const verseCard = deleteButton.closest('.verse-card'); 
+    const rowIdToDelete = verseCard ? verseCard.dataset.rowId : null;
+
+    if (!rowIdToDelete) {
+        console.error("Could not find Row ID to delete.");
+        return;
+    }
+
+    console.log(`Attempting to delete row ID: ${rowIdToDelete}`);
+
+    // 3. Construct the DELETE fetch request
+    fetch(`https://api.baserow.io/api/database/rows/table/747569/${rowIdToDelete}/`, {
+        method: "DELETE",
+        headers: {
+            "Authorization": "Token " + Token
+        }
+    })
+    .then(response => {
+        // A successful DELETE usually returns an HTTP 204 No Content status
+        if (response.status === 204) {
+            console.log(`✅ Successfully deleted row ID: ${rowIdToDelete}`);
+            // 4. Refresh the display by calling the Read function
+            // This is the clean way to "refresh" the list without reloading the page.
+            getAllVerses(); 
+        } else if (response.status === 404) {
+             console.error(`❌ Delete Error: Row ID ${rowIdToDelete} not found.`);
+        }
+        else {
+            // Handle other error statuses
+            throw new Error(`HTTP error! Status: ${response.status} during deletion.`);
+        }
+    })
+    .catch(error => {
+        console.error("❌ Delete Fetch Error:", error);
+    });
+}
+
+
+/**
+ * Takes the 'results' array from the Baserow List Rows API and renders them,
+ * adding a delete button to each card.
  * @param {Array<Object>} versesArray - The array of verse row objects.
  */
 function displayVerses(versesArray) {
@@ -114,29 +148,18 @@ function displayVerses(versesArray) {
 
     // 1. Iterate over the array of verse objects
     versesArray.forEach(verse => {
-        var Favoritecontent =""
-        if (verse.Favorite) {
-            console.log ("verseisfavorited")
-            Favoritecontent = "⭐"
-            
-        } else  {
-            console.log ("verseisnotfavorited")
-            
-        }
+        // Logic for displaying favorite status
+        var Favoritecontent = verse.Favorite ? "⭐" : "";
 
         // --- A. Create the main card container ---
         const verseCard = document.createElement("div");
         verseCard.className = 'verse-card card'; 
-        
-        // Store the unique Row ID (verse.id) on the element itself.
-        // This is vital for the future Update/Delete functionality.
         verseCard.dataset.rowId = verse.id; 
 
         // --- B. Create elements for content ---
         
         // 1. Title/Reference element (e.g., John 3:16)
         const referenceHeader = document.createElement("h4");
-        // Access data using the Baserow field names: Book, Chapter, Verse
         referenceHeader.textContent = `${verse.Book} ${verse.Chapter}:${verse.Verse} ${Favoritecontent}`;
         
         // 2. Text element
@@ -146,15 +169,22 @@ function displayVerses(versesArray) {
         // 3. Metadata element (Row ID)
         const metadataSmall = document.createElement("small");
         metadataSmall.textContent = `DB Row ID: ${verse.id}`;
+        
+        // 4. DELETE BUTTON: New element for the delete operation
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = '❌ Delete';
+        deleteButton.className = 'delete-btn';
+        
+        // Add the event listener that calls the new deleteVerse function
+        deleteButton.addEventListener('click', deleteVerse);
 
         // --- C. Append all children to the parent card ---
-        // This builds the structure in memory: <div class="verse-card">
-        verseCard.appendChild(referenceHeader); // <h4>...</h4>
-        verseCard.appendChild(verseTextParagraph); // <p>...</p>
-        verseCard.appendChild(metadataSmall); // <small>...</small>
+        verseCard.appendChild(referenceHeader);
+        verseCard.appendChild(verseTextParagraph);
+        verseCard.appendChild(metadataSmall);
+        verseCard.appendChild(deleteButton); // Append the delete button
         
         // --- D. Append the complete card to the page container ---
-        // This inserts the whole structure into the <div id="verses">
         versesContainer.appendChild(verseCard);
     });
 }
