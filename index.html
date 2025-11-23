@@ -21,7 +21,8 @@
         <label for="lookupInput">Lookup a Verse (e.g., John 3:16):</label>
         <div class="controls">
             <input type="text" id="lookupInput" placeholder="John 3:16">
-            <button id="lookupBtn">Get Verse</button>
+            <button id="lookupBtn" onclick="getverse()">Get Verse</button>
+            
         </div>
         <div id="lookupResult" class="card"></div>
     </section>
@@ -38,6 +39,20 @@
         <div id="verses" style="margin-top: 15px;"></div>
     </section>
 
+    <section>
+        <h2>Update Saved Verse:</h2>
+        <input type="number" id="updateRowIdInput" placeholder="Not Sure What To Put">
+        <input type="text" id="updateNewTextInput" placeholder="New Verse Text">
+        <button id="updateVerseBtn">Update Verse</button>
+    </section>
+    
+    <section>
+        <h2>Delete Saved Verse:</h2>
+        <input type="number" id="deleteRowIdInput" placeholder="Still not sure">
+        <button id="deleteVerseBtn">Delete Verse</button>
+    </section>
+ 
+    <button onclick="getAllVerses()">Test</button>
     <!-- Fake login sliding panel -->
     <div id="loginTab">Login?</div>
 

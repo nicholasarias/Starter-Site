@@ -1,145 +1,160 @@
-// Fake Login Sliding Panel
-const fakeLogin = document.getElementById("fakeLogin");
-const loginTab = document.getElementById("loginTab");
-const closeBtn = document.getElementById("closeLogin");
 
-loginTab.addEventListener("click", () => {
-    fakeLogin.style.right = "20px";
-});
+        const ID = 324854
+        const Token = "orozz1NNnlOphkdtzEr2i5sCg3XzvMAa"
+        function getAllVerses(){
+            console.log("start")
+            console.log("db id "+ID)
+            console.log("auth token " +Token)
+            fetch("https://api.baserow.io/api/database/rows/table/747569/?user_field_names=true", {
+  method: "GET",
+  headers: {
+    "Authorization": "Token " + Token
+  }
+})
+.then(response => {
+  // Check if the request was successful (status code 200-299)
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  // Parse the response body as JSON
+  return response.json();
+})
+.then(data => {
+  // Inside your getAllVerses().then(data => {...}) block:
 
-closeBtn.addEventListener("click", () => {
-    fakeLogin.style.right = "-300px";
-});
-
-
-// Back-End Bible Verse Lookup
-const lookupBtn = document.getElementById("lookupBtn");
-const lookupInput = document.getElementById("lookupInput");
-const lookupResult = document.getElementById("lookupResult");
-
-lookupBtn.addEventListener("click", () => {
-    let ref = lookupInput.value.trim();
-    if (!ref) {
-        lookupResult.innerHTML = "Please enter a verse.";
-        return;
+console.log(data.results)
+    // Check if 'results' exists and is an array (Standard Baserow structure)
+    if (data.results && Array.isArray(data.results)) {
+        displayVerses(data.results); // Pass the array of rows
+    } else {
+        console.error("API response structure is unexpected. Looking for data.results array.");
     }
-    fetchVerse(ref);
+})
+.catch(error => {
+  // Log any errors that occurred during the fetch operation
+  console.error("Fetch Error:", error);
 });
-
-function fetchVerse(reference) {
-    let url = `http://localhost:3000/api/verse?ref=${encodeURIComponent(reference)}`;
-    lookupResult.innerHTML = "Loading verse...";
-
-    fetch(url)
-        .then(res => res.json())
-        .then(data => {
-            if (data.error) {
-                lookupResult.innerHTML = "Verse not found.";
-            } else {
-                lookupResult.innerHTML = `
-                    <h3>${data.reference}</h3>
-                    <p>${data.text}</p>
-                `;
-            }
-        })
-        .catch(err => {
-            lookupResult.innerHTML = "Error fetching verse.";
-            console.error(err);
-        });
-}
-
-// CRUD Webhook
-function submitverse() {
-    const Uverse = document.getElementById("verseInput").value;
-
-    fetch('https://n8n.deviatedsystems.com/webhook/15e6c70d-d5f1-4ef3-8f6e-500f10f013c2', {
-        method: 'POST',
-        headers: { 'verse': Uverse }
+        }
+       function getverse() {
+    // 1. Get the verse search query from the input field
+    var versesearch = document.getElementById("lookupInput").value;
+    
+    // Log the search term for debugging purposes
+    console.log("Searching for:", versesearch); 
+    
+    // 2. Perform the fetch request
+    fetch(`https://bible-api.com/${encodeURIComponent(versesearch)}?translation=asv`)
+    .then(response => {
+        // Check if the request was successful (status code 200-299)
+        if (!response.ok) {
+            // Throw an error if the response is not OK
+            throw new Error(`HTTP error! Status: ${response.status} for search: ${versesearch}`);
+        }
+        // Return the parsed JSON body (this returns a new promise)
+        return response.json();
     })
-    .then(res => res.json())
-    .then(res => console.log(res))
-    .catch(err => console.error(err));
-}
+    .then(data => {
+        // 3. Log the JSON data to the console if the fetch was successful
+        console.log("Verse Data Received:", data);
+        const rowData = {
+        // Map the API fields to your Baserow table fields
+        "Book": data.verses[0].book_name, 
+        "Chapter": data.verses[0].chapter,
+        "Verse": data.verses[0].verse,
+        "Text": data.text,
+        // Set 'Favorite' to true, as per your cURL example
+        "Favorite": true 
+    }
+        fetch("https://api.baserow.io/api/database/rows/table/747569/?user_field_names=true", {
+            method: "POST", // The cURL -X POST flag
+        headers: {
+            // The cURL -H "Authorization: ..." flag
+            "Authorization": `Token ${Token}`, 
+            // The cURL -H "Content-Type: ..." flag
+            "Content-Type": "application/json" 
+        },
+    body: JSON.stringify(rowData)
 
-document.getElementById("submitVerseBtn").onclick = submitverse;
+    })
+.then(response => {
+        // Handle non-200 responses (e.g., 401 Unauthorized, 400 Bad Request)
+        if (!response.ok) {
+            // Read the error message from the response body for better debugging
+            return response.json().then(error => {
+                throw new Error(`HTTP error! Status: ${response.status}. Baserow Error: ${JSON.stringify(error)}`);
+            });
+        }
+        // Parse the successful response (the newly created row data)
+        return response.json();
+    })
+    .then(newRow => {
+        console.log("✅ Row created successfully:", newRow);
+    })
+    .catch(error => {
+        console.error("❌ Baserow Fetch Error:", error);
+    });
 
-// LOAD and DISPLAY VERSES
-document.getElementById("loadVersesBtn").onclick = displayVerses;
+        // Optional: You would typically update the DOM here, e.g.:
+        // document.getElementById("output").textContent = data.text;
+    })
+    .catch(error => {
+        // 4. Log any errors that occurred (network issues, API errors, etc.)
+        console.error("Fetch Error:", error);
+    });
+} 
+/**
+ * Takes the 'results' array from the Baserow List Rows API and renders them.
+ * @param {Array<Object>} versesArray - The array of verse row objects.
+ */
+function displayVerses(versesArray) {
+    const versesContainer = document.getElementById("verses");
+    
+    // Clear the container before loading new results
+    versesContainer.innerHTML = ''; 
 
-function displayVerses() {
-    fetch('https://n8n.deviatedsystems.com/webhook/15e6c70d-d5f1-4ef3-8f6e-500f10f013c2')
-        .then(res => res.json())
-        .then(data => renderVerses(data));
-}
-
-function renderVerses(verses) {
-    let div = document.getElementById("verses");
-    div.innerHTML = "";
-
-    verses.forEach(verse => {
-        let box = document.createElement("div");
-
-        box.style.border = "1px solid black";
-        box.style.borderRadius = "5px";
-        box.style.padding = "10px";
-        box.style.marginBottom = "10px";
-
-        box.innerHTML = `
-            <h3>${verse.Name}${verse.Favorite ? " ⭐" : ""}</h3>
-            <p>${verse.VerseContent}</p>
-            <hr>
-            <p><em>${verse.Ai_Explain}</em></p>
-        `;
-
-        // FAVORITE BUTTON
-        if (!verse.Favorite) {
-            let favBtn = document.createElement("button");
-            favBtn.innerText = "Favorite";
-            favBtn.onclick = () => favoriteVerse(verse.id);
-            box.appendChild(favBtn);
-        } else {
-            let removeFavBtn = document.createElement("button");
-            removeFavBtn.innerText = "Remove Favorite";
-            removeFavBtn.onclick = () => deleteFavoriteVerse(verse.id);
-            box.appendChild(removeFavBtn);
+    // 1. Iterate over the array of verse objects
+    versesArray.forEach(verse => {
+        var Favoritecontent =""
+        if (verse.Favorite) {
+            console.log ("verseisfavorited")
+            Favoritecontent = "⭐"
+            
+        } else  {
+            console.log ("verseisnotfavorited")
+            
         }
 
-        // DELETE BUTTON
-        let delBtn = document.createElement("button");
-        delBtn.innerText = "Delete";
-        delBtn.onclick = () => deleteVerse(verse.id);
-        box.appendChild(delBtn);
+        // --- A. Create the main card container ---
+        const verseCard = document.createElement("div");
+        verseCard.className = 'verse-card card'; 
+        
+        // Store the unique Row ID (verse.id) on the element itself.
+        // This is vital for the future Update/Delete functionality.
+        verseCard.dataset.rowId = verse.id; 
 
-        div.appendChild(box);
+        // --- B. Create elements for content ---
+        
+        // 1. Title/Reference element (e.g., John 3:16)
+        const referenceHeader = document.createElement("h4");
+        // Access data using the Baserow field names: Book, Chapter, Verse
+        referenceHeader.textContent = `${verse.Book} ${verse.Chapter}:${verse.Verse} ${Favoritecontent}`;
+        
+        // 2. Text element
+        const verseTextParagraph = document.createElement("p");
+        verseTextParagraph.textContent = verse.Text;
+        
+        // 3. Metadata element (Row ID)
+        const metadataSmall = document.createElement("small");
+        metadataSmall.textContent = `DB Row ID: ${verse.id}`;
+
+        // --- C. Append all children to the parent card ---
+        // This builds the structure in memory: <div class="verse-card">
+        verseCard.appendChild(referenceHeader); // <h4>...</h4>
+        verseCard.appendChild(verseTextParagraph); // <p>...</p>
+        verseCard.appendChild(metadataSmall); // <small>...</small>
+        
+        // --- D. Append the complete card to the page container ---
+        // This inserts the whole structure into the <div id="verses">
+        versesContainer.appendChild(verseCard);
     });
-}
-
-// DELETE Verse
-function deleteVerse(id) {
-    fetch('https://n8n.deviatedsystems.com/webhook/15e6c70d-d5f1-4ef3-8f6e-500f10f013c2', {
-        method: 'DELETE',
-        headers: { 'verseId': id }
-    })
-    .then(res => res.json())
-    .then(() => displayVerses());
-}
-
-// Add Favorite
-function favoriteVerse(id) {
-    fetch('https://n8n.deviatedsystems.com/webhook/15e6c70d-d5f1-4ef3-8f6e-500f10f013c3', {
-        method: 'POST',
-        headers: { 'verseId': id, 'favorite': true }
-    })
-    .then(res => res.json())
-    .then(() => displayVerses());
-}
-
-// Remove Favorite
-function deleteFavoriteVerse(id) {
-    fetch('https://n8n.deviatedsystems.com/webhook/15e6c70d-d5f1-4ef3-8f6e-500f10f013c3', {
-        method: 'POST',
-        headers: { 'verseId': id, 'favorite': false }
-    })
-    .then(res => res.json())
-    .then(() => displayVerses());
 }
